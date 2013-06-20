@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.BounceInterpolator;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +30,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.LatLngBounds.Builder;
+import com.google.android.gms.maps.model.LatLngBoundsCreator;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends android.support.v4.app.FragmentActivity implements LocationAPIHandler, AppVersionAPIHandler {
@@ -84,6 +88,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
     private void stopTrack() {
     	Intent intent = new Intent(this, VemPraRuaService.class);
 		stopService(intent);
+		finish();
     }
  
 
@@ -97,13 +102,37 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
-	        case R.id.action_main_menu_refresh_map:
-	            LocationAPI api = new LocationAPI();
-	            api.list(this);
-	            return true;
-	        default:
-	            return super.onOptionsItemSelected(item);
+        case R.id.action_main_menu_refresh_map:
+            LocationAPI api = new LocationAPI();
+            api.list(this);
+            return true;
+        case R.id.action_main_menu_shutdown:
+        	stopTrack();
+            return true;
+        case R.id.action_main_menu_report_conflitc:
+        	reportConflict();
+            return true;
+        default:
+        return super.onOptionsItemSelected(item);
 	    }
+	}
+	
+	public void reportConflict() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+		// 2. Chain together various setter methods to set the dialog characteristics
+		builder.setMessage("Está função ainda não está disponível.")
+		       .setTitle("Em breve!")
+		       .setPositiveButton("OK", new OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			});
+
+		// 3. Get the AlertDialog from create()
+		builder.create().show();
 	}
 	
 	@Override
@@ -136,17 +165,21 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 		mTotalTextView.setText(total + " manifestantes!!!");
 		
 		LatLng latLng;
+		Builder latLngBuilder = LatLngBounds.builder();
 		for (User user: mUsers) {
-	        if(mUser.latitude != 0) {
-	        	latLng = new LatLng(mUser.latitude, mUser.longitude);
+	        if(user.latitude != 0) {
+	        	
+	        	latLng = new LatLng(user.latitude, user.longitude);
+	        	latLngBuilder.include(latLng);
 				mMap.addMarker(new MarkerOptions()
-		        .position(latLng)
-		        .title(user.name)
-		        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
-		        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
-		        mMap.moveCamera(update);
+			        .position(latLng)
+			        .title(user.name)
+			        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
 	        }
 		}
+		
+        CameraUpdate update = CameraUpdateFactory.newLatLngBounds(latLngBuilder.build(), 60);
+        mMap.moveCamera(update);
 	}
 
 	@Override

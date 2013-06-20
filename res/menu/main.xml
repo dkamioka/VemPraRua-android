@@ -1,10 +1,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
+    
     <item
         android:id="@+id/action_main_menu_refresh_map"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:icon="@drawable/refresh"
+        android:icon="@drawable/navigation_refresh"
         android:title="@string/action_main_menu_refresh_map"/>
+
+    <item
+        android:id="@+id/action_main_menu_report_conflitc"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:icon="@drawable/alerts_and_states_warning"
+        android:title="@string/action_main_menu_report_conflict"/>
+    
+    
+    <item
+        android:id="@+id/action_main_menu_shutdown"
+        android:showAsAction="never"
+        android:title="@string/action_main_menu_shutdown"/>
 
 </menu>

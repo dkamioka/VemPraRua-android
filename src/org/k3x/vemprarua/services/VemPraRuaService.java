@@ -51,12 +51,14 @@ public class VemPraRuaService extends Service implements LocationListener, Locat
 		LocationListener locationListener = this;
 
 		LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, 0, locationListener);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, 20, locationListener);
 	}
 
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, 20, this);
+		
 		user = User.getUser(this);
 		// Acquire a reference to the system Location Manager
 		List<String> providers = locationManager.getProviders(true);

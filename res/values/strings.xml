@@ -2,7 +2,9 @@
 <resources>
 
     <string name="app_name">Vem Pra Rua</string>
-    <string name="action_main_menu_refresh_map">Settings</string>
+    <string name="action_main_menu_refresh_map">Atualizar Mapa</string>
+    <string name="action_main_menu_shutdown">Sair</string>
+    <string name="action_main_menu_report_conflict">Reportar Conflito</string>
     <string name="main_activity_hello_user">Parabéns, VOCÊ ESTÁ NA RUA!</string>
 
 </resources>
