@@ -20,6 +20,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -41,7 +42,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         if(mUser.id != null) {
         	LocationAPI api = new LocationAPI();
         	api.update(mUser, this);
-        	Toast.makeText(this, "Ol√°, " + mUser.name, Toast.LENGTH_LONG).show();
+        	Toast.makeText(this, "Olá, " + mUser.name, Toast.LENGTH_LONG).show();
         	startTrack();
         } else {
         	LocationAPI api = new LocationAPI();
@@ -125,7 +126,8 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 	        	latLng = new LatLng(mUser.latitude, mUser.longitude);
 				mMap.addMarker(new MarkerOptions()
 		        .position(latLng)
-		        .title(user.name));
+		        .title(user.name)
+		        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
 		        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
 		        mMap.moveCamera(update);
 	        }
