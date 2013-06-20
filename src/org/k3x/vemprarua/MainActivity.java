@@ -2,13 +2,20 @@ package org.k3x.vemprarua;
 
 import java.util.List;
 
+import org.k3x.vemprarua.api.AppVersionAPI;
+import org.k3x.vemprarua.api.AppVersionAPIHandler;
 import org.k3x.vemprarua.api.LocationAPI;
 import org.k3x.vemprarua.api.LocationAPIHandler;
 import org.k3x.vemprarua.model.FieldError;
 import org.k3x.vemprarua.model.User;
 import org.k3x.vemprarua.services.VemPraRuaService;
+import org.k3x.vemprarua.util.Configs;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,12 +31,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity extends android.support.v4.app.FragmentActivity implements LocationAPIHandler {
+public class MainActivity extends android.support.v4.app.FragmentActivity implements LocationAPIHandler, AppVersionAPIHandler {
 
 	private User mUser;
 	private List<User> mUsers;
 	private GoogleMap mMap;
 	private TextView mTotalTextView;
+	
+	private String mAppUrl;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +51,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         if(mUser.id != null) {
         	LocationAPI api = new LocationAPI();
         	api.update(mUser, this);
-        	Toast.makeText(this, "Ol�, " + mUser.name, Toast.LENGTH_LONG).show();
+        	Toast.makeText(this, "Olá, " + mUser.name, Toast.LENGTH_LONG).show();
         	startTrack();
         } else {
         	LocationAPI api = new LocationAPI();
@@ -102,6 +111,9 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 		mUser = user;
 		mUser.save(this);
 		startTrack();
+		
+        AppVersionAPI appVersionAPI = new AppVersionAPI();
+        appVersionAPI.showLast(this);
 	}
 
 	@Override
@@ -110,6 +122,9 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 			mUser = user;
 			mUser.save(this);
 		}
+
+        AppVersionAPI appVersionAPI = new AppVersionAPI();
+        appVersionAPI.showLast(this);
 	}
 
 	@Override
@@ -131,6 +146,30 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 		        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
 		        mMap.moveCamera(update);
 	        }
+		}
+	}
+
+	@Override
+	public void onShowedLast(boolean success, int version, String appUrl) {
+		if(version > Configs.APP_VERSION && appUrl != null) {
+			this.mAppUrl = appUrl;
+			// 1. Instantiate an AlertDialog.Builder with its constructor
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+			// 2. Chain together various setter methods to set the dialog characteristics
+			builder.setMessage("Temos uma nova versão deste app.\nAtualize agora.!")
+			       .setTitle("Nova Versão!")
+			       .setPositiveButton("OK", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(MainActivity.this.mAppUrl));
+						startActivity(intent);
+					}
+				});
+
+			// 3. Get the AlertDialog from create()
+			builder.create().show();
 		}
 	}
     
