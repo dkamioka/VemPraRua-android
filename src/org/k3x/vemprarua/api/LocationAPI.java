@@ -22,9 +22,11 @@ public class LocationAPI implements JsonHandler{
 
 	private static final String API_RELATIVE_URL_CREATE_USER = "api/users/";
 	private static final String API_RELATIVE_URL_UPDATE_USER = "api/users/%1$s/";
+	private static final String API_RELATIVE_URL_LIST_USERS = "api/users/";
 
 	private static final int CODE_CREATE_USER = 0;
 	private static final int CODE_UPDATE_USER = 1;
+	private static final int CODE_LIST_USERS = 2;
 
 	private LocationAPIHandler handler;
 	private User user;
@@ -147,6 +149,50 @@ public class LocationAPI implements JsonHandler{
 			e.printStackTrace();
 		}
 	}
+
+	public void list(LocationAPIHandler handler) {
+		this.handler = handler;
+		if (Configs.DEBUG)		Log.i(LocationAPI.class.getName(), "List Users!");
+		
+
+		String absoluteUrl = JsonREST.getAbsoluteUrl(API_RELATIVE_URL_LIST_USERS);
+		JsonREST jsonREST = new JsonREST();
+		jsonREST.get(
+				absoluteUrl,
+				this,
+				new HashMap<String, String>(),
+				CODE_LIST_USERS
+				);
+	}
+
+	public void onListed(JSONObject response) {
+		try {
+			
+			List<FieldError> errors = new ArrayList<FieldError>();
+			
+			List<User> users = new ArrayList<User>();
+			int total;
+			
+			total = response.getInt("total");
+			
+			JSONArray usersJson = response.getJSONArray("users");
+			User user;
+			JSONObject userJson;
+			for(int i = 0; i < total; i++) {
+				user = new User();
+				userJson = usersJson.getJSONObject(i);
+				user.id = userJson.getString("id");
+				user.name = userJson.getString("name");
+				user.latitude = userJson.getDouble("latitude");
+				user.longitude = userJson.getDouble("longitude");
+				users.add(user);
+			}
+			handler.onListed(true, total, users, errors);
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	
 	public void onSuccess(JSONObject response, int code) {
@@ -155,7 +201,10 @@ public class LocationAPI implements JsonHandler{
 			onCreated(response);
 			break;
 		case CODE_UPDATE_USER:
-			onCreated(response);
+			onUpdated(response);
+			break;
+		case CODE_LIST_USERS:
+			onListed(response);
 			break;
 
 		default:

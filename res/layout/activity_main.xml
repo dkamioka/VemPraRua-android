@@ -17,8 +17,30 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="32dp"
-        android:background="#CC0000"
-        android:alpha="0.5"
-        android:text="@string/hello_world" />
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:background="#FF0000"
+        android:padding="10dp"
+        android:alpha="0.8"
+        android:visibility="gone"
+        android:text="@string/main_activity_hello_user" />
+
+    <TextView
+        android:id="@+id/main_activity_total_users"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="32dp"
+        android:layout_marginLeft="32dp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:background="#FF0000"
+        android:padding="10dp"
+        android:shadowRadius="10"
+        android:shadowDx="10"
+        android:shadowDy="10"
+        android:visibility="invisible"
+        android:text="@null" />
 
 </RelativeLayout>

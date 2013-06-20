@@ -208,4 +208,10 @@ public class VemPraRuaService extends Service implements LocationListener, Locat
 		// not used
 		
 	}
+
+
+	@Override
+	public void onListed(boolean success, int total, List<User> users, List<FieldError> errors) {
+		// not used
+	}
 }

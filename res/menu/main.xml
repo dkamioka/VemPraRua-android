@@ -1,9 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_main_menu_refresh_map"
         android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/action_settings"/>
+        android:showAsAction="always"
+        android:icon="@drawable/ic_launcher"
+        android:title="@string/action_main_menu_refresh_map"/>
 
 </menu>

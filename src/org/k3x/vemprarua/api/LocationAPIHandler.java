@@ -10,5 +10,7 @@ public interface LocationAPIHandler {
 	void onCreated(boolean success, User user, List<FieldError> errors);
 
 	void onUpdated(boolean success, User user, List<FieldError> errors);
+	
+	void onListed(boolean success, int total, List<User> users, List<FieldError> errors);
 
 }
