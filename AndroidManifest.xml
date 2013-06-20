@@ -7,6 +7,20 @@
     <uses-sdk
         android:minSdkVersion="8"
         android:targetSdkVersion="17" />
+    
+       <permission
+       android:name="br.com.mowa.peggtaxi.driver.permission.C2D_MESSAGE"
+       android:protectionLevel="signature" />
+       <uses-permission android:name="br.com.mowa.peggtaxi.driver.permission.C2D_MESSAGE" />
+    <!-- App receives GCM messages. -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <!-- GCM connects to Google Services. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- GCM requires a Google account. -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <!-- Keeps the processor from sleeping when a message is received. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
 	<permission 
 	    android:name="org.k3x.vemprarua.permission.MAPS_RECEIVE"
 	    android:protectionLevel="signature"/>
@@ -31,6 +45,23 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        <service
+            android:name=".services.VemPraRuaService"
+            android:enabled="true"
+            android:exported="false" />
+        <service android:name=".GCMIntentService" />
+
+        <receiver
+            android:name="com.google.android.gcm.GCMBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
+                <category android:name="org.k3x.vemprarua" />
+            </intent-filter>
+        </receiver>
+        
         <activity
             android:name="org.k3x.vemprarua.MainActivity"
             android:label="@string/app_name" >
