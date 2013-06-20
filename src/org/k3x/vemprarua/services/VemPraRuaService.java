@@ -160,26 +160,15 @@ public class VemPraRuaService extends Service implements LocationListener, Locat
 			mNotificationManager.notify(NOTIFICATION_CODE_LOCATION_LOG, mBuilder.build()); 
 		}
 
-		try {
-			if (Configs.DEBUG) Log.i(Configs.LOG_TAG, "Nova Posição!");
+		if (Configs.DEBUG) Log.i(Configs.LOG_TAG, "Nova Posição!");
 
-			user = User.getUser(this);
-			user.latitude = location.getLatitude();
-			user.longitude = location.getLongitude();
+		user = User.getUser(this);
+		user.latitude = location.getLatitude();
+		user.longitude = location.getLongitude();
 
-			LocationAPI api = new LocationAPI();
-			user.save(this);
-			api.update(user, this);
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		LocationAPI api = new LocationAPI();
+		user.save(this);
+		api.update(user, this);
  
 	}
 

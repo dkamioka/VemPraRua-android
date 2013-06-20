@@ -39,6 +39,8 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         
         mUser = User.getUser(this);
         if(mUser.id != null) {
+        	LocationAPI api = new LocationAPI();
+        	api.update(mUser, this);
         	Toast.makeText(this, "Olá, " + mUser.name, Toast.LENGTH_LONG).show();
         	startTrack();
         } else {
@@ -103,7 +105,10 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 
 	@Override
 	public void onUpdated(boolean success, User user, List<FieldError> errors) {
-		// not used
+		if(user != null) {
+			mUser = user;
+			mUser.save(this);
+		}
 	}
 
 	@Override
