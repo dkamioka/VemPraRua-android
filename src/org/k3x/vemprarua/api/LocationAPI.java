@@ -79,6 +79,7 @@ public class LocationAPI implements JsonHandler{
 				JSONObject userJson = response.getJSONObject("user");
 				user.id = userJson.getString("id");
 				user.name = userJson.getString("name");
+				user.status = userJson.optString("status");
 				user.latitude = userJson.optDouble("latitude", 0.0);
 				user.longitude = userJson.optDouble("longitude", 0.0);
 
@@ -97,6 +98,7 @@ public class LocationAPI implements JsonHandler{
 	
 			JSONObject userJson = new JSONObject();
 			if(user.name != null) {userJson.put("name", user.name);}
+			if(user.status != null) {userJson.put("status", user.status);}
 			if(user.latitude != 0) {userJson.put("latitude", user.latitude);}
 			if(user.longitude != 0) {userJson.put("longitude", user.longitude);}
 	
@@ -142,6 +144,7 @@ public class LocationAPI implements JsonHandler{
 				JSONObject userJson = response.getJSONObject("user");
 				user.id = userJson.getString("id");
 				user.name = userJson.getString("name");
+				user.status= userJson.getString("status");
 				user.latitude = userJson.optDouble("latitude", 0.0);
 				user.longitude = userJson.optDouble("longitude", 0.0);
 
@@ -185,6 +188,7 @@ public class LocationAPI implements JsonHandler{
 				userJson = usersJson.getJSONObject(i);
 				user.id = userJson.getString("id");
 				user.name = userJson.getString("name");
+				user.status = userJson.getString("status");
 				user.latitude = userJson.optDouble("latitude", 0.0);
 				user.longitude = userJson.optDouble("longitude", 0.0);
 				users.add(user);

@@ -20,7 +20,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.BounceInterpolator;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +31,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.LatLngBounds.Builder;
-import com.google.android.gms.maps.model.LatLngBoundsCreator;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends android.support.v4.app.FragmentActivity implements LocationAPIHandler, AppVersionAPIHandler {
@@ -154,7 +152,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 
         AppVersionAPI appVersionAPI = new AppVersionAPI();
         appVersionAPI.showLast(this);
-	}
+	}sse
 
 	@Override
 	public void onListed(boolean success, int total, List<User> users, List<FieldError> errors) {
@@ -174,6 +172,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 				mMap.addMarker(new MarkerOptions()
 			        .position(latLng)
 			        .title(user.name)
+			        .snippet(user.status)
 			        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
 	        }
 		}

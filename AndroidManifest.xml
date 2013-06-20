@@ -9,9 +9,9 @@
         android:targetSdkVersion="17" />
     
        <permission
-       android:name="br.com.mowa.peggtaxi.driver.permission.C2D_MESSAGE"
+       android:name="org.k3x.vemprarua.permission.C2D_MESSAGE"
        android:protectionLevel="signature" />
-       <uses-permission android:name="br.com.mowa.peggtaxi.driver.permission.C2D_MESSAGE" />
+       <uses-permission android:name="org.k3x.vemprarua.permission.C2D_MESSAGE" />
     <!-- App receives GCM messages. -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <!-- GCM connects to Google Services. -->

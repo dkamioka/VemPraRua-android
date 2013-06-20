@@ -24,6 +24,7 @@ public class User implements Serializable{
 
 	public String id;
 	public String name;
+	public String status;
 	public double latitude;
 	public double longitude;
 	
