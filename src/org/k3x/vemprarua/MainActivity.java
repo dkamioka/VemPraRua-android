@@ -17,12 +17,16 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gcm.GCMRegistrar;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -39,6 +43,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 	private List<User> mUsers;
 	private GoogleMap mMap;
 	private TextView mTotalTextView;
+	private boolean mFitPins = true;
 	
 	private String mAppUrl;
 	
@@ -46,7 +51,30 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        int zoom = getIntent().getIntExtra("zoom", 8);
+        double latitude = getIntent().getDoubleExtra("latitude", 0);
+        double longitude = getIntent().getDoubleExtra("longitude", 0);
+        String title = getIntent().getStringExtra("title");
+        String message = getIntent().getStringExtra("message");
         
+        int res = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if(res != ConnectionResult.SUCCESS) {
+        }
+        
+        GCMRegistrar.checkDevice(this);
+		// TODO: "this method (checkManifest) is only necessary when you are developing the application;
+		//		once the application is ready to be published, you can remove it"
+		GCMRegistrar.checkManifest(this);
+		final String regId = GCMRegistrar.getRegistrationId(this);
+		if (regId.equals("")) {
+			Log.i(MainActivity.class.getName(), "Registrando..");
+			GCMRegistrar.register(this, Configs.GCM_SENDER_ID);
+			Log.v(MainActivity.class.getName(), "Already registered:" + GCMRegistrar.getRegistrationId(this));
+		} else {
+			Log.v(MainActivity.class.getName(), "Already registered:" + GCMRegistrar.getRegistrationId(this));
+		}
+		
         mTotalTextView = (TextView) findViewById(R.id.main_activity_total_users);
         
         mUser = User.getUser(this);
@@ -64,18 +92,39 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         mMap = mapFragment.getMap();
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         LatLng latLng;
-        if(mUser.latitude == 0) {
-        	latLng = new LatLng(-23.564224, -46.653156);
-        } else {
-        	latLng = new LatLng(mUser.latitude, mUser.longitude);
-        }
-        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
-        mMap.moveCamera(update);
-        mMap.setMyLocationEnabled(true);
         
 
-    	LocationAPI api = new LocationAPI();
-    	api.list(this);
+        CameraUpdate update;
+        if(latitude != 0 && longitude != 0) {
+        	mFitPins = false;
+        	latLng = new LatLng(latitude, longitude);
+        	update = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
+        	
+
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    		builder.setMessage(message)
+    		       .setTitle(title)
+    		       .setPositiveButton("OK", new OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					dialog.dismiss();
+    				}
+    			}).create().show();
+    		
+        	
+        } else if(mUser.latitude != 0 && mUser.longitude != 0) {
+        	latLng = new LatLng(mUser.latitude, mUser.longitude);
+        	update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+        	LocationAPI api = new LocationAPI();
+        	api.list(this);
+        } else {
+        	latLng = new LatLng(-23.564224, -46.653156);
+        	update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+        	LocationAPI api = new LocationAPI();
+        	api.list(this);
+        }
+        mMap.moveCamera(update);
+        mMap.setMyLocationEnabled(true);
     }
     
     private void startTrack() {
@@ -152,7 +201,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 
         AppVersionAPI appVersionAPI = new AppVersionAPI();
         appVersionAPI.showLast(this);
-	}sse
+	}
 
 	@Override
 	public void onListed(boolean success, int total, List<User> users, List<FieldError> errors) {
@@ -162,23 +211,38 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 		mTotalTextView.setVisibility(View.VISIBLE);
 		mTotalTextView.setText(total + " manifestantes!!!");
 		
-		LatLng latLng;
-		Builder latLngBuilder = LatLngBounds.builder();
-		for (User user: mUsers) {
-	        if(user.latitude != 0) {
-	        	
-	        	latLng = new LatLng(user.latitude, user.longitude);
-	        	latLngBuilder.include(latLng);
-				mMap.addMarker(new MarkerOptions()
-			        .position(latLng)
-			        .title(user.name)
-			        .snippet(user.status)
-			        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
-	        }
+		if(mFitPins) {
+			LatLng latLng;
+			Builder latLngBuilder = LatLngBounds.builder();
+			for (User user: mUsers) {
+		        if(user.latitude != 0) {
+		        	
+		        	latLng = new LatLng(user.latitude, user.longitude);
+		        	latLngBuilder.include(latLng);
+					mMap.addMarker(new MarkerOptions()
+				        .position(latLng)
+				        .title(user.name)
+				        .snippet(user.status)
+				        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
+		        }
+			}
+			
+	        CameraUpdate update = CameraUpdateFactory.newLatLngBounds(latLngBuilder.build(), 60);
+	        mMap.moveCamera(update);
+		} else {
+			for (User user: mUsers) {
+		        if(user.latitude != 0) {
+					LatLng latLng = new LatLng(user.latitude, user.longitude);
+		        	mMap.addMarker(new MarkerOptions()
+				        .position(latLng)
+				        .title(user.name)
+				        .snippet(user.status)
+				        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
+		        }
+			}
 		}
 		
-        CameraUpdate update = CameraUpdateFactory.newLatLngBounds(latLngBuilder.build(), 60);
-        mMap.moveCamera(update);
+		mFitPins = true;
 	}
 
 	@Override
