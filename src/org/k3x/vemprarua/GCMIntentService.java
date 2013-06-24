@@ -61,7 +61,7 @@ public class GCMIntentService extends GCMBaseIntentService implements LocationAP
 		case PUSH_TYPE_FULLSCREEN_INFO:
 			Intent intentFullscreen = new Intent(this, FullscreenNotificationActivity.class);
 			intentFullscreen.putExtra("title", intent.getStringExtra("title"));
-			intentFullscreen.putExtra("text", intent.getStringExtra("text"));
+			intentFullscreen.putExtra("message", intent.getStringExtra("message"));
 			intentFullscreen.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(intentFullscreen);
 			break;
