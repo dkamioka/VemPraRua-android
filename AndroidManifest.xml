@@ -79,10 +79,6 @@
             android:value="AIzaSyAf2Sdb9pptNfAo_V2damfqdusOBAdI3LA" />
 
         <activity
-            android:name="org.k3x.vemprarua.UpdateStatusActivity"
-            android:label="@string/title_activity_update_status" >
-        </activity>
-        <activity
             android:name="org.k3x.vemprarua.FullscreenNotificationActivity"
             android:label="@string/title_activity_fullscreen_notification" >
         </activity>
