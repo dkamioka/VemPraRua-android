@@ -7,6 +7,12 @@
         android:showAsAction="always"
         android:icon="@drawable/navigation_refresh"
         android:title="@string/action_main_menu_refresh_map"/>
+    
+    <item
+        android:id="@+id/action_main_menu_update_status"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom"
+        android:title="@string/action_main_menu_update_status"/>
 
     <item
         android:id="@+id/action_main_menu_report_conflitc"

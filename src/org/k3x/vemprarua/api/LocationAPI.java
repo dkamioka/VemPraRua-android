@@ -146,7 +146,7 @@ public class LocationAPI implements JsonHandler{
 				user.name = userJson.getString("name");
 				user.status= userJson.getString("status");
 
-				handler.onCreated(true, user, errors);
+				handler.onUpdated(true, user, errors);
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();

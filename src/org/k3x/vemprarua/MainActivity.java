@@ -18,9 +18,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,15 +37,20 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.LatLngBounds.Builder;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends android.support.v4.app.FragmentActivity implements LocationAPIHandler, AppVersionAPIHandler {
 
 	private User mUser;
+	private Marker mUserMarker;
 	private List<User> mUsers;
 	private GoogleMap mMap;
 	private TextView mTotalTextView;
+	private EditText mStatusEditText;
+
 	private boolean mFitPins = true;
+	private boolean mShowMe = false;
 	
 	private String mAppUrl;
 	
@@ -123,8 +130,10 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         	LocationAPI api = new LocationAPI();
         	api.list(this);
         }
-        mMap.moveCamera(update);
+        mMap.animateCamera(update);
         mMap.setMyLocationEnabled(true);
+        
+        showStatusDialog();
     }
     
     private void startTrack() {
@@ -156,12 +165,56 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         case R.id.action_main_menu_shutdown:
         	stopTrack();
             return true;
+        case R.id.action_main_menu_update_status:
+        	showStatusDialog();
+            return true;
         case R.id.action_main_menu_report_conflitc:
         	reportConflict();
             return true;
         default:
         return super.onOptionsItemSelected(item);
 	    }
+	}
+	
+	public void showStatusDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    // Get the layout inflater
+	    LayoutInflater inflater = this.getLayoutInflater();
+
+	    // Inflate and set the layout for the dialog
+	    // Pass null as the parent view because its going in the dialog layout
+	    View v = inflater.inflate(R.layout.dialog_update_status, null);
+	    mStatusEditText = (EditText) v.findViewById(R.id.dialog_update_status_edit_text);
+	    builder.setView(v)
+	    // Add action buttons
+	           .setPositiveButton(R.string.dialog_update_status_send_button, new DialogInterface.OnClickListener() {
+	               @Override
+	               public void onClick(DialogInterface dialog, int id) {
+	            	   updateStatus();
+	            	   dialog.dismiss();
+	               }
+	           })
+	           .setNegativeButton(R.string.dialog_update_status_cancel_button, new DialogInterface.OnClickListener() {
+	               public void onClick(DialogInterface dialog, int id) {
+	                   dialog.cancel();
+	               }
+	           });      
+	    builder.create().show();
+	}
+	
+	public void updateStatus() {
+		String status = mStatusEditText.getText().toString();
+ 	   mStatusEditText = null;
+ 	   
+ 	   if(status != null && !status.equals("")) {
+     	   mUser.status = status;
+     	   mUser.save(MainActivity.this);
+     	   
+     	   mShowMe = true;
+     	   
+     	   LocationAPI api = new LocationAPI();
+     	   api.update(mUser, this);
+ 	   }
 	}
 	
 	public void reportConflict() {
@@ -198,6 +251,16 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 			mUser = user;
 			mUser.save(this);
 		}
+		if(mShowMe) {
+			
+			if(mUserMarker != null) {
+		        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(mUserMarker.getPosition(), 16);
+		        mUserMarker.setSnippet(mUser.status);
+		        mUserMarker.showInfoWindow();
+		        mMap.animateCamera(update);
+			}
+	        mShowMe = false;
+		}
 
         AppVersionAPI appVersionAPI = new AppVersionAPI();
         appVersionAPI.showLast(this);
@@ -219,11 +282,16 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 		        	
 		        	latLng = new LatLng(user.latitude, user.longitude);
 		        	latLngBuilder.include(latLng);
-					mMap.addMarker(new MarkerOptions()
-				        .position(latLng)
-				        .title(user.name)
-				        .snippet(user.status)
-				        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
+		        	
+		        	Marker marker = mMap.addMarker(new MarkerOptions()
+			        .position(latLng)
+			        .title(user.name)
+			        .snippet(user.status)
+			        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
+		        	
+		        	if(mUser != null && mUser.id != null && user.id.equals(mUser.id)) {
+		        		mUserMarker = marker;
+		        	}
 		        }
 			}
 			
@@ -233,11 +301,16 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 			for (User user: mUsers) {
 		        if(user.latitude != 0) {
 					LatLng latLng = new LatLng(user.latitude, user.longitude);
-		        	mMap.addMarker(new MarkerOptions()
-				        .position(latLng)
-				        .title(user.name)
-				        .snippet(user.status)
-				        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
+		        	Marker marker = mMap.addMarker(new MarkerOptions()
+			        .position(latLng)
+			        .title(user.name)
+			        .snippet(user.status)
+			        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
+		        	
+
+		        	if(mUser != null && mUser.id != null && user.id.equals(mUser.id)) {
+		        		mUserMarker = marker;
+		        	}
 		        }
 			}
 		}
