@@ -11,11 +11,13 @@ import org.k3x.vemprarua.model.User;
 import org.k3x.vemprarua.services.VemPraRuaService;
 import org.k3x.vemprarua.util.Configs;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -55,6 +57,7 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 	private String mAppUrl;
 	
     @Override
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -86,6 +89,10 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         
         mUser = User.getUser(this);
         if(mUser.id != null) {
+
+    		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+    			this.getActionBar().setTitle(mUser.name);
+    		}
         	LocationAPI api = new LocationAPI();
         	api.update(mUser, this);
         	Toast.makeText(this, "Olá, " + mUser.name, Toast.LENGTH_LONG).show();
@@ -236,19 +243,29 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 	}
 	
 	@Override
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void onCreated(boolean success, User user, List<FieldError> errors) {
 		mUser = user;
 		mUser.save(this);
 		startTrack();
-		
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			this.getActionBar().setTitle(mUser.name);
+		}
+    	
         AppVersionAPI appVersionAPI = new AppVersionAPI();
         appVersionAPI.showLast(this);
 	}
 
 	@Override
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void onUpdated(boolean success, User user, List<FieldError> errors) {
 		if(user != null) {
 			mUser = user;
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+				this.getActionBar().setTitle(mUser.name);
+			}
 			mUser.save(this);
 		}
 		if(mShowMe) {

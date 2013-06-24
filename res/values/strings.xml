@@ -7,10 +7,9 @@
     <string name="action_main_menu_report_conflict">Reportar Conflito</string>
     <string name="action_main_menu_update_status">Atualizar Status</string>
     <string name="main_activity_hello_user">Parabéns, VOCÊ ESTÁ NA RUA!</string>
-    <string name="title_activity_update_status">UpdateStatusActivity</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="title_activity_fullscreen_notification">FullscreenNotificationActivity</string>
+    <string name="title_activity_fullscreen_notification">ATENÇÃO!</string>
     
     <string name="dialog_update_status_title">Afasta de mim esse cale-se.</string>
     <string name="dialog_update_status_hint">Insira sua mensagem:</string>
