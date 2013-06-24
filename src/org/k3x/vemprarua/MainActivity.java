@@ -17,12 +17,18 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gcm.GCMRegistrar;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,14 +37,20 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.LatLngBounds.Builder;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends android.support.v4.app.FragmentActivity implements LocationAPIHandler, AppVersionAPIHandler {
 
 	private User mUser;
+	private Marker mUserMarker;
 	private List<User> mUsers;
 	private GoogleMap mMap;
 	private TextView mTotalTextView;
+	private EditText mStatusEditText;
+
+	private boolean mFitPins = true;
+	private boolean mShowMe = false;
 	
 	private String mAppUrl;
 	
@@ -46,7 +58,30 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        int zoom = getIntent().getIntExtra("zoom", 8);
+        double latitude = getIntent().getDoubleExtra("latitude", 0);
+        double longitude = getIntent().getDoubleExtra("longitude", 0);
+        String title = getIntent().getStringExtra("title");
+        String message = getIntent().getStringExtra("message");
         
+        int res = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if(res != ConnectionResult.SUCCESS) {
+        }
+        
+        GCMRegistrar.checkDevice(this);
+		// TODO: "this method (checkManifest) is only necessary when you are developing the application;
+		//		once the application is ready to be published, you can remove it"
+		GCMRegistrar.checkManifest(this);
+		final String regId = GCMRegistrar.getRegistrationId(this);
+		if (regId.equals("")) {
+			Log.i(MainActivity.class.getName(), "Registrando..");
+			GCMRegistrar.register(this, Configs.GCM_SENDER_ID);
+			Log.v(MainActivity.class.getName(), "Already registered:" + GCMRegistrar.getRegistrationId(this));
+		} else {
+			Log.v(MainActivity.class.getName(), "Already registered:" + GCMRegistrar.getRegistrationId(this));
+		}
+		
         mTotalTextView = (TextView) findViewById(R.id.main_activity_total_users);
         
         mUser = User.getUser(this);
@@ -64,18 +99,41 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         mMap = mapFragment.getMap();
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         LatLng latLng;
-        if(mUser.latitude == 0) {
-        	latLng = new LatLng(-23.564224, -46.653156);
-        } else {
-        	latLng = new LatLng(mUser.latitude, mUser.longitude);
-        }
-        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
-        mMap.moveCamera(update);
-        mMap.setMyLocationEnabled(true);
         
 
-    	LocationAPI api = new LocationAPI();
-    	api.list(this);
+        CameraUpdate update;
+        if(latitude != 0 && longitude != 0) {
+        	mFitPins = false;
+        	latLng = new LatLng(latitude, longitude);
+        	update = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
+        	
+
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    		builder.setMessage(message)
+    		       .setTitle(title)
+    		       .setPositiveButton("OK", new OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					dialog.dismiss();
+    				}
+    			}).create().show();
+    		
+        	
+        } else if(mUser.latitude != 0 && mUser.longitude != 0) {
+        	latLng = new LatLng(mUser.latitude, mUser.longitude);
+        	update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+        	LocationAPI api = new LocationAPI();
+        	api.list(this);
+        } else {
+        	latLng = new LatLng(-23.564224, -46.653156);
+        	update = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+        	LocationAPI api = new LocationAPI();
+        	api.list(this);
+        }
+        mMap.animateCamera(update);
+        mMap.setMyLocationEnabled(true);
+        
+        showStatusDialog();
     }
     
     private void startTrack() {
@@ -107,12 +165,56 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
         case R.id.action_main_menu_shutdown:
         	stopTrack();
             return true;
+        case R.id.action_main_menu_update_status:
+        	showStatusDialog();
+            return true;
         case R.id.action_main_menu_report_conflitc:
         	reportConflict();
             return true;
         default:
         return super.onOptionsItemSelected(item);
 	    }
+	}
+	
+	public void showStatusDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    // Get the layout inflater
+	    LayoutInflater inflater = this.getLayoutInflater();
+
+	    // Inflate and set the layout for the dialog
+	    // Pass null as the parent view because its going in the dialog layout
+	    View v = inflater.inflate(R.layout.dialog_update_status, null);
+	    mStatusEditText = (EditText) v.findViewById(R.id.dialog_update_status_edit_text);
+	    builder.setView(v)
+	    // Add action buttons
+	           .setPositiveButton(R.string.dialog_update_status_send_button, new DialogInterface.OnClickListener() {
+	               @Override
+	               public void onClick(DialogInterface dialog, int id) {
+	            	   updateStatus();
+	            	   dialog.dismiss();
+	               }
+	           })
+	           .setNegativeButton(R.string.dialog_update_status_cancel_button, new DialogInterface.OnClickListener() {
+	               public void onClick(DialogInterface dialog, int id) {
+	                   dialog.cancel();
+	               }
+	           });      
+	    builder.create().show();
+	}
+	
+	public void updateStatus() {
+		String status = mStatusEditText.getText().toString();
+ 	   mStatusEditText = null;
+ 	   
+ 	   if(status != null && !status.equals("")) {
+     	   mUser.status = status;
+     	   mUser.save(MainActivity.this);
+     	   
+     	   mShowMe = true;
+     	   
+     	   LocationAPI api = new LocationAPI();
+     	   api.update(mUser, this);
+ 	   }
 	}
 	
 	public void reportConflict() {
@@ -149,10 +251,20 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 			mUser = user;
 			mUser.save(this);
 		}
+		if(mShowMe) {
+			
+			if(mUserMarker != null) {
+		        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(mUserMarker.getPosition(), 16);
+		        mUserMarker.setSnippet(mUser.status);
+		        mUserMarker.showInfoWindow();
+		        mMap.animateCamera(update);
+			}
+	        mShowMe = false;
+		}
 
         AppVersionAPI appVersionAPI = new AppVersionAPI();
         appVersionAPI.showLast(this);
-	}sse
+	}
 
 	@Override
 	public void onListed(boolean success, int total, List<User> users, List<FieldError> errors) {
@@ -162,23 +274,48 @@ public class MainActivity extends android.support.v4.app.FragmentActivity implem
 		mTotalTextView.setVisibility(View.VISIBLE);
 		mTotalTextView.setText(total + " manifestantes!!!");
 		
-		LatLng latLng;
-		Builder latLngBuilder = LatLngBounds.builder();
-		for (User user: mUsers) {
-	        if(user.latitude != 0) {
-	        	
-	        	latLng = new LatLng(user.latitude, user.longitude);
-	        	latLngBuilder.include(latLng);
-				mMap.addMarker(new MarkerOptions()
+		if(mFitPins) {
+			LatLng latLng;
+			Builder latLngBuilder = LatLngBounds.builder();
+			for (User user: mUsers) {
+		        if(user.latitude != 0) {
+		        	
+		        	latLng = new LatLng(user.latitude, user.longitude);
+		        	latLngBuilder.include(latLng);
+		        	
+		        	Marker marker = mMap.addMarker(new MarkerOptions()
 			        .position(latLng)
 			        .title(user.name)
 			        .snippet(user.status)
 			        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
-	        }
+		        	
+		        	if(mUser != null && mUser.id != null && user.id.equals(mUser.id)) {
+		        		mUserMarker = marker;
+		        	}
+		        }
+			}
+			
+	        CameraUpdate update = CameraUpdateFactory.newLatLngBounds(latLngBuilder.build(), 60);
+	        mMap.moveCamera(update);
+		} else {
+			for (User user: mUsers) {
+		        if(user.latitude != 0) {
+					LatLng latLng = new LatLng(user.latitude, user.longitude);
+		        	Marker marker = mMap.addMarker(new MarkerOptions()
+			        .position(latLng)
+			        .title(user.name)
+			        .snippet(user.status)
+			        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin)));
+		        	
+
+		        	if(mUser != null && mUser.id != null && user.id.equals(mUser.id)) {
+		        		mUserMarker = marker;
+		        	}
+		        }
+			}
 		}
 		
-        CameraUpdate update = CameraUpdateFactory.newLatLngBounds(latLngBuilder.build(), 60);
-        mMap.moveCamera(update);
+		mFitPins = true;
 	}
 
 	@Override
